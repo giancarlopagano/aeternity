@@ -1,6 +1,17 @@
 -module(aestratum_target).
 
--export([recalculate/3]).
+%% TODO: eunit
+%% TODO: type spec
+
+%% this should be included from a dependency - aeminer?
+-define(MAX_TARGET, 16#ffff000000000000000000000000000000000000000000000000000000000000).
+
+-export([recalculate/3,
+         diff/2,
+         max/0,
+         to_bin/1,
+         to_int/1
+        ]).
 
 recalculate(PrevTargets, DesiredSolveTime, MaxTarget) when
       PrevTargets =/= [] ->
@@ -16,4 +27,20 @@ recalculate(PrevTargets, DesiredSolveTime, MaxTarget) when
     min(MaxTarget, NewTarget);
 recalculate([], _DesiredSolveTime, MaxTarget) ->
     MaxTarget.
+
+diff(NewTarget, OldTarget) when NewTarget > OldTarget ->
+    {increase, (NewTarget - OldTarget) / OldTarget * 100};
+diff(NewTarget, OldTarget) when NewTarget < OldTarget ->
+    {decrease, (OldTarget - NewTarget) / OldTarget * 100};
+diff(Target, Target) ->
+    no_change.
+
+max() ->
+    ?MAX_TARGET.
+
+to_bin(Target) ->
+    iolist_to_binary(io_lib:format("~64.16.0b", [Target])).
+
+to_int(Bin) ->
+    binary_to_integer(Bin, 16).
 
